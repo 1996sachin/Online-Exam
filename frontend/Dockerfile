@@ -1,13 +1,24 @@
-FROM node:13-alpine
+# Use a lightweight Node image for build
+FROM node:20-alpine AS build
 
-WORKDIR /usr/frontend
+WORKDIR /usr/src/app
 
-COPY . .
-RUN rm -rf node_modules/ package-lock.json
+# Copy package files and install dependencies
+COPY package*.json ./
 RUN npm install
 
+# Copy all source files and build
+COPY . .
 RUN npm run build
 
+# Use a small web server image to serve static files
+FROM nginx:alpine
 
-CMD ["sh", "-c", "npm start"]
+# Copy build output to nginx html folder
+COPY --from=build /usr/src/app/build /usr/share/nginx/html
 
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
