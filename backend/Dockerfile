@@ -1,10 +1,10 @@
-# Use Node 20
+# Use LTS Node.js version
 FROM node:20-alpine
 
 # Set working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json first (for caching)
+# Copy package files first (for caching)
 COPY package*.json ./
 
 # Install dependencies
@@ -13,8 +13,8 @@ RUN npm install --production
 # Copy rest of the app
 COPY . .
 
-# Expose backend port (change if your app uses a different port)
+# Expose backend port
 EXPOSE 5000
 
-# Start the backend
+# Start backend
 CMD ["node", "app.js"]
