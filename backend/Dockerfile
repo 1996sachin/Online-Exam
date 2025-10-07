@@ -1,4 +1,4 @@
-k# Use Node 20
+# Use Node 20
 FROM node:20-alpine
 
 # Set working directory
