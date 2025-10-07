@@ -1,12 +1,20 @@
-FROM node:13-alpine
+k# Use Node 20
+FROM node:20-alpine
 
-WORKDIR /usr/backend
+# Set working directory
+WORKDIR /usr/src/app
 
+# Copy package.json and package-lock.json first (for caching)
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install --production
+
+# Copy rest of the app
 COPY . .
-RUN rm -rf node_modules/ package-lock.json
 
-RUN npm install nodemon
-RUN npm install
+# Expose backend port (change if your app uses a different port)
+EXPOSE 5000
 
-
-CMD ["sh", "-c", "npm run start"]
+# Start the backend
+CMD ["node", "app.js"]
