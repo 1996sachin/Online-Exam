@@ -45,7 +45,7 @@ pipeline {
                 echo "Deploying frontend..."
                 sh """
                 mkdir -p ${DEPLOY_DIR}/frontend
-                cp -r ${FRONTEND_DIR}/dist/* ${DEPLOY_DIR}/frontend/
+                cp -r ${FRONTEND_DIR}/build/* ${DEPLOY_DIR}/frontend/
                 """
             }
         }
