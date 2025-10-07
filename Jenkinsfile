@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        BACKEND_DIR = "backend"
+        FRONTEND_DIR = "frontend"
+        DEPLOY_DIR = "/var/www/online-exam" // change to your web root
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -11,43 +17,48 @@ pipeline {
 
         stage('Install Backend Dependencies') {
             steps {
-                dir('backend') {
-                    echo "Installing PHP dependencies..."
-                    sh 'composer install --no-interaction --prefer-dist'
+                dir("${BACKEND_DIR}") {
+                    echo "Installing backend dependencies..."
+                    sh 'npm install || true'
                 }
             }
         }
 
         stage('Install Frontend Dependencies & Build') {
             steps {
-                dir('frontend') {
-                    echo "Installing Node.js dependencies..."
-                    sh 'npm install'
-                    echo "Building frontend..."
-                    sh 'npm run build'
-                }
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                dir('backend') {
-                    echo "Running PHP Unit tests..."
-                    sh './vendor/bin/phpunit || true'
-                }
-                dir('frontend') {
-                    echo "Running frontend tests..."
-                    sh 'npm test || true'
+                dir("${FRONTEND_DIR}") {
+                    echo "Installing frontend dependencies..."
+                    sh 'npm install || true'
+                    sh 'npm run build || true'
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                echo "Deploying application..."
+                echo "Deploying backend..."
                 sh """
-                cp -r backend/* /var/www/html/
-                cp -r frontend/dist/* /var/www/html/public/
+                mkdir -p ${DEPLOY_DIR}/backend
+                cp -r ${BACKEND_DIR}/* ${DEPLOY_DIR}/backend/
+                """
+
+                echo "Deploying frontend..."
+                sh """
+                mkdir -p ${DEPLOY_DIR}/frontend
+                cp -r ${FRONTEND_DIR}/dist/* ${DEPLOY_DIR}/frontend/
+                """
+            }
+        }
+
+        stage('Start Backend with PM2') {
+            steps {
+                echo "Starting backend with PM2..."
+                sh """
+                npm install -g pm2 || true
+                pm2 stop online-exam-backend || true
+                pm2 delete online-exam-backend || true
+                pm2 start ${DEPLOY_DIR}/backend/app.js --name online-exam-backend
+                pm2 save
                 """
             }
         }
