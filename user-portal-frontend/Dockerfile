@@ -1,12 +1,17 @@
-FROM node:13-alpine
+FROM node:20-alpine AS build
 
-WORKDIR /usr/user-portal-frontend
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm install
 
 COPY . .
-RUN rm -rf node_modules/ package-lock.json
-RUN npm install
 RUN npm run build
 
-# Run the application
-CMD ["sh","-c", "npm start"]
+FROM nginx:alpine
 
+COPY --from=build /usr/src/app/build /usr/share/nginx/html
+
+EXPOSE 3000
+
+CMD ["nginx", "-g", "daemon off;"]
