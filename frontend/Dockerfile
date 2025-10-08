@@ -1,22 +1,22 @@
-# Use Node for build stage
+# ---- Stage 1: Build ----
 FROM node:20-alpine AS build
 
 WORKDIR /usr/src/app
 
+# Copy package files first
 COPY package*.json ./
-RUN npm install
 
+# Install all dependencies (including dev) for build
+RUN npm install --legacy-peer-deps --no-audit --no-fund
+
+# Copy app source
 COPY . .
+
+# Build the React app
 RUN npm run build
 
-# Use nginx for serving production build
+# ---- Stage 2: Nginx ----
 FROM nginx:alpine
-
-# Copy React build to nginx html folder
 COPY --from=build /usr/src/app/build /usr/share/nginx/html
-
-# Expose port 3000
 EXPOSE 3000
-
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
