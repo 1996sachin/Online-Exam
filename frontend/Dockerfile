@@ -3,19 +3,19 @@ FROM node:20-alpine AS build
 
 WORKDIR /usr/src/app
 
-# Copy package files first
+# Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including dev) for build
+# Install all dependencies (including devDependencies)
 RUN npm install --legacy-peer-deps --no-audit --no-fund
 
-# Copy app source
+# Copy source files
 COPY . .
 
-# Build the React app
-RUN npm run build
+# Build React app
+RUN npx react-scripts build
 
-# ---- Stage 2: Nginx ----
+# ---- Stage 2: Serve with Nginx ----
 FROM nginx:alpine
 COPY --from=build /usr/src/app/build /usr/share/nginx/html
 EXPOSE 3000
