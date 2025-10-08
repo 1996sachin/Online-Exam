@@ -1,20 +1,18 @@
-# Use LTS Node.js version
 FROM node:20-alpine
 
-# Set working directory
 WORKDIR /usr/src/app
 
-# Copy package files first (for caching)
+# Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install only production dependencies
 RUN npm install --production
 
-# Copy rest of the app
+# Copy source code
 COPY . .
 
 # Expose backend port
 EXPOSE 5000
 
 # Start backend
-CMD ["node", "app.js"]
+CMD ["node", "index.js"]   # or your main server file
