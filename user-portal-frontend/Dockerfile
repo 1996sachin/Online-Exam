@@ -1,22 +1,30 @@
-# ---- Stage 1: Build ----
+# ---- Stage 1: Build React app ----
 FROM node:20-alpine AS build
 
 WORKDIR /usr/src/app
 
-# Copy only package files first (for caching)
+# Copy package files
 COPY package*.json ./
 
-# Faster, safer install (fixes ERESOLVE + skips audit/fund)
-RUN npm ci --legacy-peer-deps --no-audit --no-fund
+# Install all dependencies including devDependencies
+RUN npm install --legacy-peer-deps --no-audit --no-fund
 
-# Copy the rest of the app
+# Copy source files
 COPY . .
 
-# Build the app
-RUN npm run build
+# Build the React app
+RUN npx react-scripts build
 
-# ---- Stage 2: Nginx ----
+# ---- Stage 2: Serve with Nginx ----
 FROM nginx:alpine
+
+# Remove default Nginx static files
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy build output from previous stage
 COPY --from=build /usr/src/app/build /usr/share/nginx/html
-EXPOSE 3000
+
+# Expose port
+EXPOSE 80
+
 CMD ["nginx", "-g", "daemon off;"]
